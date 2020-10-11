@@ -26,7 +26,7 @@ SECRET_KEY = '2k1q!tqjov+nqtgpjbbcik7-(a_n4c-fs6-h)rh1n+*+nktk1a'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['musicbackend-dev.us-east-1.elasticbeanstalk.com']
 
 
 # Application definition
