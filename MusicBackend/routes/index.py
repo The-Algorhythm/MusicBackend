@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 import json
 
-from routes.auth import *
+from ..routes.auth import *
 
 
 def get_index(request):
