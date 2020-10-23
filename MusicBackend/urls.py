@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from .routes.user import user
+from .routes.index import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('user/', user),
-    path('', user),
+    # path('user/', user),
+    path('', get_index),
+    path('login/', login),
 ]

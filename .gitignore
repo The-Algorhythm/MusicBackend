@@ -6,6 +6,7 @@
 
 # Environment Variables
 .env
+.ebextensions/environment.config
 
 # Jetbrains
 .idea/
