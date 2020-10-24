@@ -7,6 +7,7 @@
 # Environment Variables
 .env
 .ebextensions/environment.config
+credentials.json
 
 # Jetbrains
 .idea/

@@ -17,10 +17,11 @@ from django.contrib import admin
 from django.urls import path
 
 from .routes.index import *
+from .routes.sheets import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('user/', user),
     path('', get_index),
     path('login/', login),
+    path('init-creds/', create_token),
 ]

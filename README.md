@@ -14,3 +14,4 @@ run locally. If deploying to AWS, the config variables can be changed for the El
 Configuration -> Software.
     - To remove the file from git so the local changes are not tracked, run `git update-index --assume-unchanged .env`.
     To undo this, run `git update-index --no-assume-unchanged .env`
+- To connect to Google Sheets API, place `credentials.json` file in the main directory.
