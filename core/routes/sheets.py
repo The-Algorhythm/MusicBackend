@@ -1,4 +1,4 @@
-from google_sheets import get_creds, SheetsApiException, create_creds
+from core.google_sheets import get_creds, SheetsApiException, create_creds
 from googleapiclient.discovery import build
 
 from django.http import JsonResponse

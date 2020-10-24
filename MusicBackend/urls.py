@@ -16,8 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from .routes.index import *
-from .routes.sheets import *
+from core.routes.index import *
+from core.routes.sheets import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
