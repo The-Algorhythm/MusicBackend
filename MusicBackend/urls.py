@@ -24,4 +24,5 @@ urlpatterns = [
     path('', get_index),
     path('login/', login),
     path('init-creds/', create_token),
+    path('sheets/', check_sheets_setup),
 ]

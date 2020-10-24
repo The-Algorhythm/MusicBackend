@@ -8,11 +8,19 @@ import re
 import os
 
 TOKEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../token.pickle')
-creds = get_creds(TOKEN_DIR)
-service = build('sheets', 'v4', credentials=creds)
+creds = None
+service = None
+try:
+    creds = get_creds(TOKEN_DIR)
+    service = build('sheets', 'v4', credentials=creds)
+except SheetsApiException:
+    pass
 
 
 def get_sheet_data(spreadsheet_id, sheet_name, artist_range, album_range):
+    if service is None:
+        raise SheetsApiException
+
     sheet = service.spreadsheets()
 
     album_data_range = f"{sheet_name}!{album_range}"
@@ -48,9 +56,13 @@ def check_sheets_setup(request):
 
 def create_token(request):
     global creds
+    global service
+
     if not request.user.is_superuser:
         raise Http404
     else:
-        create_creds()
-        creds = get_creds(TOKEN_DIR)
-        return HttpResponse()
+        if creds is None:
+            create_creds()
+            creds = get_creds(TOKEN_DIR)
+            service = build('sheets', 'v4', credentials=creds)
+            return HttpResponse()
