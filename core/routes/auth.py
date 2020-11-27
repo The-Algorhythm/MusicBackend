@@ -22,7 +22,13 @@ class SpotifyCommunicator:
         redirect_uri = request.build_absolute_uri('/')+'login'
         return HttpResponseRedirect(self._initOAuth(redirect_uri))
 
-    def test_spotify(self, request, token):
-        token_info = self.sp_oauth.get_access_token(token)
+    def get_initial_token_info(self, initial_token):
+        return self.sp_oauth.get_access_token(initial_token)
+
+    def update_token_info(self, token_info):
+        if self.sp_oauth.is_token_expired(token_info):
+            return self.sp_oauth.refresh_access_token(token_info["refresh_token"])
+
+    def test_spotify(self, token_info):
         self.sp = Spotify(token_info['access_token'])
         return self.sp.current_user()
