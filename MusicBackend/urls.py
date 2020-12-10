@@ -18,6 +18,7 @@ from django.urls import path
 
 from core.routes.index import *
 from core.routes.sheets import *
+from core.routes.recommendations import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('login/', login),
     path('init-creds/', create_token),
     path('sheets/', check_sheets_setup),
+    path('torch/', test_torch),
 ]
