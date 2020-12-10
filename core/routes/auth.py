@@ -28,6 +28,7 @@ class SpotifyCommunicator:
     def update_token_info(self, token_info):
         if self.sp_oauth.is_token_expired(token_info):
             return self.sp_oauth.refresh_access_token(token_info["refresh_token"])
+        return token_info
 
     def test_spotify(self, token_info):
         self.sp = Spotify(token_info['access_token'])
