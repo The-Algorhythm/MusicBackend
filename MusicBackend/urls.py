@@ -16,13 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from core.routes.index import *
+from core.routes.login import *
 from core.routes.sheets import *
 from core.routes.recommendations import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', get_index),
     path('login/', login),
     path('init-creds/', create_token),
     path('sheets/', check_sheets_setup),
