@@ -23,11 +23,14 @@ def get_recommendations(request):
     pref = body["preferences"]
 
     use_canvases = True
+    num_songs = 100
     if "use_canvases" in pref.keys():
         use_canvases = pref["use_canvases"]
+    if "num_songs" in pref.keys():
+        num_songs = pref["num_songs"]
 
     user_spotify = SpotifyCommunicator(token_info)  # communicator specific to this user
     top_songs = user_spotify.get_top_songs(limit=5)['items']
-    recommendations = user_spotify.get_recommendations_from_songs(top_songs, limit=100)['tracks']
+    recommendations = user_spotify.get_recommendations_from_songs(top_songs, limit=num_songs)['tracks']
     recommendations = extract_song_data(recommendations, use_canvases=use_canvases)
     return JsonResponse({"recommendations": recommendations, "time": time.time()-start})
