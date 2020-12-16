@@ -30,4 +30,4 @@ def get_canvases(uris):
         end = res.find("\r\n", idx)
         line_splt = res[idx:end].split(" | ")
         results.append({line_splt[0]: line_splt[1]})
-    return res, results
+    return res, cmd_err, results
