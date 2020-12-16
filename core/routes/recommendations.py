@@ -14,5 +14,5 @@ def test_torch(request):
 
 def get_recommendations(request):
     start = time.time()
-    canvases = get_canvases(["spotify:track:0baNzeUcPQnQSagpe8T0mD", "spotify:track:6B0fJdJscs6PV9IhoVPIw9"])
-    return JsonResponse({"canvases": canvases, "time": time.time()-start})
+    cmd_out, canvases = get_canvases(["spotify:track:0baNzeUcPQnQSagpe8T0mD", "spotify:track:6B0fJdJscs6PV9IhoVPIw9"])
+    return JsonResponse({"canvases": canvases, "cmd_out": cmd_out, "time": time.time()-start})
