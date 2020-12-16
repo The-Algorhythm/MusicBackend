@@ -58,5 +58,7 @@ def extract_song_data(songs, use_canvases=True):
         }
         if use_canvases:
             data["canvas_url"] = canvases[song['uri']] if song['uri'] in canvases.keys() else None
+        else:
+            data["canvas_url"] = None
         song_data.append(data)
     return song_data
