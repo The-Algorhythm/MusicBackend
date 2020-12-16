@@ -29,5 +29,5 @@ def get_canvases(uris):
     for idx in relevant_indices:
         end = res.find("\n", idx)
         line_splt = res[idx:end].split(" | ")
-        results.append({line_splt[0]: line_splt[1]})
-    return res, cmd_err, results
+        results.append({line_splt[0].strip(): line_splt[1].strip()})
+    return results
