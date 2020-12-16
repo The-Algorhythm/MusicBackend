@@ -27,7 +27,7 @@ def get_canvases(uris):
     relevant_indices = [m.start() for m in re.finditer('spotify:track:', res)]
     results = []
     for idx in relevant_indices:
-        end = res.find("\r\n", idx)
+        end = res.find("\n", idx)
         line_splt = res[idx:end].split(" | ")
         results.append({line_splt[0]: line_splt[1]})
     return res, cmd_err, results
