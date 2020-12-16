@@ -26,4 +26,5 @@ urlpatterns = [
     path('init-creds/', create_token),
     path('sheets/', check_sheets_setup),
     path('torch/', test_torch),
+    path('recommendations/', get_recommendations),
 ]

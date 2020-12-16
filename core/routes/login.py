@@ -7,6 +7,7 @@ from ..routes.auth import *
 
 spotify = SpotifyCommunicator()
 
+
 def login(request):
     if request.GET.get('code') is not None:  # triggered on redirect with auth token
         token_info = spotify.get_initial_token_info(request.GET.get('code'))
