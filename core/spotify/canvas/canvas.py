@@ -6,7 +6,7 @@ import re
 
 def init_credentials():
     global_path = os.path.dirname(os.path.realpath(__file__))
-    global_path = global_path[:global_path.find("MusicBackend") + len("MusicBackend")]
+    global_path = global_path[:-len('core/spotify/canvas/')]
     filename = f"{global_path}/cred/credentials.json"
     if not os.path.isfile(filename):
         with open(filename, 'w+') as f:
