@@ -7,7 +7,7 @@ import re
 def init_credentials():
     global_path = os.path.dirname(os.path.realpath(__file__))
     global_path = global_path[:global_path.find("MusicBackend") + len("MusicBackend")]
-    filename = f"{global_path}\\cred\\credentials.json"
+    filename = f"{global_path}/cred/credentials.json"
     if not os.path.isfile(filename):
         with open(filename, 'w+') as f:
             credentials = {"username": os.getenv("SPOTIFY_USERNAME"),
