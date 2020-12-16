@@ -21,7 +21,7 @@ def get_canvases(uris):
     curr_path = os.path.dirname(os.path.realpath(__file__))
     uri_str = ",".join(uris)
     print(uri_str)
-    cmd = subprocess.Popen(['java', '-jar', f"{curr_path}\\java\\canvas.jar", f"--uris={uri_str}"], stdout=subprocess.PIPE)
+    cmd = subprocess.Popen(['java', '-jar', f"{curr_path}/java/canvas.jar", f"--uris={uri_str}"], stdout=subprocess.PIPE)
     cmd_out, cmd_err = cmd.communicate()
     res = cmd_out.decode("utf-8")
     relevant_indices = [m.start() for m in re.finditer('spotify:track:', res)]
