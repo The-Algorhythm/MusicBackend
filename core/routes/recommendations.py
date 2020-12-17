@@ -18,16 +18,14 @@ def test_torch(request):
 
 def get_recommendations(request):
     start = time.time()
-    body = json.loads(request.body)
-    token_info = spotify_auth.update_token_info(body["token_info"])
-    pref = body["preferences"]
+    token_info = spotify_auth.update_token_info(json.loads(request.META['HTTP_TOKEN']))
 
     use_canvases = True
     num_songs = 100
-    if "use_canvases" in pref.keys():
-        use_canvases = pref["use_canvases"]
-    if "num_songs" in pref.keys():
-        num_songs = pref["num_songs"]
+    if "use_canvases" in request.GET.keys():
+        use_canvases = request.GET["use_canvases"]
+    if "num_songs" in request.GET.keys():
+        num_songs = request.GET["num_songs"]
 
     user_spotify = SpotifyCommunicator(token_info)  # communicator specific to this user
     top_songs = user_spotify.get_top_songs(limit=5)['items']
