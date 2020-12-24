@@ -20,13 +20,14 @@ from core.routes.login import *
 from core.routes.sheets import *
 from core.routes.recommendations import *
 from core.routes.profile import *
+from core.routes.interactions import interaction
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login),
-    path('init-creds/', create_token),
-    path('sheets/', check_sheets_setup),
     path('torch/', test_torch),
     path('recommendations/', get_recommendations),
     path('profile/', get_profile),
+    path('interaction/', csrf_exempt(interaction)),
 ]
