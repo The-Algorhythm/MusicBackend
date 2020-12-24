@@ -28,11 +28,12 @@ def uri_string(uri):
     return uri[len('spotify:track:'):]
 
 
-def extract_song_data(songs, use_canvases=True):
+def extract_song_data(songs, use_canvases=True, ensure_preview_url=True):
     """
     Given a list of Spotify song dictionaries, extracts the relevant info needed and populates any missing info
     :param songs: list of Spotify song dictionaries
-    :param use_canvases: Boolean determining whether or not to retrieve canvas urls
+    :param use_canvases: Bool for whether or not to retrieve canvas urls
+    :param ensure_preview_url: Bool for whether or not to query the embed url for the preview if it does not exist
     :return: list of dicts containing relevant song data
     """
     song_data = []
@@ -46,7 +47,7 @@ def extract_song_data(songs, use_canvases=True):
         artist_str = artist_str[:-2]
 
         preview_url = song['preview_url']
-        if preview_url is None:
+        if ensure_preview_url and preview_url is None:
             preview_url = get_preview_url(song['id'])
         data = {
             "song_title": song['name'],

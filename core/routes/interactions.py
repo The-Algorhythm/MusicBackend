@@ -1,7 +1,8 @@
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 import time
 
-from core.routes.util import get_user_model
+from core.routes.util import get_user
+from core.spotify.util import extract_song_data
 
 from core.models import UserActivity
 
@@ -13,6 +14,22 @@ def interaction(request):
         return interaction_post(request)
 
 
+def get_liked_songs(request):
+    start = time.time()
+
+    success, user_spotify, result = get_user(request)
+    if not success:
+        return HttpResponseBadRequest(result)
+    user_model = result
+
+    activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.LIKE)
+    song_ids = [x.spotify_song_id for x in activity_models]
+    tracks = user_spotify.sp.tracks(song_ids)['tracks']
+
+    return JsonResponse({"tracks": extract_song_data(tracks, use_canvases=False, ensure_preview_url=False),
+                         "time": time.time()-start})
+
+
 def interaction_get(request):
     start = time.time()
 
@@ -20,25 +37,24 @@ def interaction_get(request):
     if "type" in request.GET.keys():
         interaction_type = request.GET["type"]
 
-    success, result = get_user_model(request)
+    success, _, result = get_user(request)
     if not success:
         return HttpResponseBadRequest(result)
-    else:
-        user_model = result
+    user_model = result
 
-        if interaction_type is None:
-            activity_models = UserActivity.objects.filter(user=user_model)
-        elif interaction_type.upper() == "LIKE":
-            activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.LIKE)
-        elif interaction_type.upper() == "SHARE":
-            activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.SHARE)
-        elif interaction_type.upper() == "OPEN":
-            activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.OPEN)
-        elif interaction_type.upper() == "LISTEN_LENGTH":
-            activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.LISTEN_LENGTH)
+    if interaction_type is None:
+        activity_models = UserActivity.objects.filter(user=user_model)
+    elif interaction_type.upper() == "LIKE":
+        activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.LIKE)
+    elif interaction_type.upper() == "SHARE":
+        activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.SHARE)
+    elif interaction_type.upper() == "OPEN":
+        activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.OPEN)
+    elif interaction_type.upper() == "LISTEN_LENGTH":
+        activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.LISTEN_LENGTH)
 
-        res = [{"song": x.spotify_song_id, "type": x.activity_type} for x in activity_models]
-        return JsonResponse({"interactions": res, "time": time.time()-start})
+    res = [{"song": x.spotify_song_id, "type": x.activity_type} for x in activity_models]
+    return JsonResponse({"interactions": res, "time": time.time()-start})
 
 
 def interaction_post(request):
@@ -54,7 +70,7 @@ def interaction_post(request):
     if "listen_length" in request.GET.keys():
         listen_length = request.GET["listen_length"]
 
-    success, result = get_user_model(request)
+    success, _, result = get_user(request)
     if not success:
         return HttpResponseBadRequest(result)
     else:
