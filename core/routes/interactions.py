@@ -24,10 +24,12 @@ def get_liked_songs(request):
 
     activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.LIKE)
     song_ids = [x.spotify_song_id for x in activity_models]
-    tracks = user_spotify.sp.tracks(song_ids)['tracks']
-
-    return JsonResponse({"tracks": extract_song_data(tracks, use_canvases=False, ensure_preview_url=False),
-                         "time": time.time()-start})
+    if len(song_ids) > 0:
+        tracks = user_spotify.sp.tracks(song_ids)['tracks']
+        song_data = extract_song_data(tracks, use_canvases=False, ensure_preview_url=False)
+    else:
+        song_data = []
+    return JsonResponse({"tracks": song_data, "time": time.time()-start})
 
 
 def interaction_get(request):
