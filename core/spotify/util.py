@@ -55,6 +55,7 @@ def extract_song_data(songs, use_canvases=True, ensure_preview_url=True):
             "song_title": song['name'],
             "album_title": song['album']['name'],
             "album_art_url": song['album']['images'][0]['url'],
+            "album_id": song['album']['id'],
             "artist": artist_str,
             "artist_ids": artist_ids,
             "preview_url": preview_url,
