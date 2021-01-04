@@ -1,10 +1,10 @@
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 import time
 
-from core.routes.util import get_user
-from core.spotify.util import extract_song_data
+from django.http import JsonResponse, HttpResponseBadRequest
 
 from core.models import UserActivity
+from core.routes.util import get_user
+from core.spotify.util import extract_song_data
 
 
 def interaction(request):
@@ -29,15 +29,15 @@ def get_liked_songs(request):
         song_data = extract_song_data(tracks, use_canvases=False, ensure_preview_url=False)
     else:
         song_data = []
-    return JsonResponse({"tracks": song_data, "time": time.time()-start})
+    return JsonResponse({"tracks": song_data, "time": time.time() - start})
 
 
 def interaction_get(request):
     start = time.time()
 
     interaction_type = None
-    if "type" in request.GET.keys():
-        interaction_type = request.GET["type"]
+    if "interaction_type" in request.GET.keys():
+        interaction_type = request.GET["interaction_type"]
 
     success, _, result = get_user(request)
     if not success:
@@ -53,29 +53,39 @@ def interaction_get(request):
     elif interaction_type.upper() == "OPEN":
         activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.OPEN)
     elif interaction_type.upper() == "LISTEN_LENGTH":
-        activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.LISTEN_LENGTH)
+        activity_models = UserActivity.objects.filter(user=user_model,
+                                                      activity_type=UserActivity.ActivityType.LISTEN_LENGTH)
     elif interaction_type.upper() == "DISLIKE":
         activity_models = UserActivity.objects.filter(user=user_model, activity_type=UserActivity.ActivityType.DISLIKE)
 
     res = [{"song": x.spotify_id, "type": x.activity_type} for x in activity_models]
-    return JsonResponse({"interactions": res, "time": time.time()-start})
+    return JsonResponse({"interactions": res, "time": time.time() - start})
 
 
 def interaction_post(request):
     start = time.time()
 
     interaction_type = None
-    song_id = None
-    artist_ids = None
+    spotify_id = None
     listen_length = None
-    if "type" in request.GET.keys():
-        interaction_type = request.GET["type"]
-    if "song_id" in request.GET.keys():
-        song_id = request.GET["song_id"]
-    if "artist_ids" in request.GET.keys():
-        artist_ids = request.GET["artist_ids"]
+    object_type = "TRACK"  # track by default
+    if "interaction_type" in request.GET.keys():
+        interaction_type = request.GET["interaction_type"]
+    if "spotify_id" in request.GET.keys():
+        spotify_id = request.GET["spotify_id"]
     if "listen_length" in request.GET.keys():
         listen_length = request.GET["listen_length"]
+    if "object_type" in request.GET.keys():
+        object_type = request.GET["object_type"]
+
+    if object_type.upper() == "ARTIST":
+        obj_type_enum = UserActivity.ObjectType.ARTIST
+    elif object_type.upper() == "ALBUM":
+        obj_type_enum = UserActivity.ObjectType.ALBUM
+    elif object_type.upper() == "PLAYLIST":
+        obj_type_enum = UserActivity.ObjectType.PLAYLIST
+    else:
+        obj_type_enum = UserActivity.ObjectType.TRACK
 
     success, _, result = get_user(request)
     if not success:
@@ -85,8 +95,8 @@ def interaction_post(request):
 
         if interaction_type is None:
             return HttpResponseBadRequest('Must specify interaction type in query params')
-        if song_id is None and artist_ids is None:
-            return HttpResponseBadRequest('Must specify id in query params')
+        if spotify_id is None:
+            return HttpResponseBadRequest('Must specify spotify id in query params')
 
         action = None
         data = {}
@@ -102,7 +112,7 @@ def interaction_post(request):
             action = UserActivity.ActivityType.LISTEN_LENGTH
             data = {"ms": listen_length}
         elif interaction_type.upper() == "UNLIKE":
-            liked_post = UserActivity.objects.filter(user=user_model, spotify_id=song_id,
+            liked_post = UserActivity.objects.filter(user=user_model, spotify_id=spotify_id, object_type=obj_type_enum,
                                                      activity_type=UserActivity.ActivityType.LIKE)
             if len(liked_post) == 0:
                 return HttpResponseBadRequest('There is not any record of this user liking that post')
@@ -111,21 +121,19 @@ def interaction_post(request):
             return JsonResponse({"time": time.time() - start})
         elif interaction_type.upper() == "DISLIKE":
             action = UserActivity.ActivityType.DISLIKE
-            if song_id is not None:
-                data = {"type": "song"}
-                UserActivity.objects.create(user=user_model, spotify_id=song_id, data=data, activity_type=action)
-            else:
-                data = {"type": "artist"}
-                artist_id_lst = artist_ids.split(',')
+            if obj_type_enum == UserActivity.ObjectType.ARTIST:
+                artist_id_lst = spotify_id.split(',')
                 for artist_id in artist_id_lst:
-                    UserActivity.objects.create(user=user_model, spotify_id=artist_id, data=data, activity_type=action)
-            return JsonResponse({"time": time.time() - start})
+                    UserActivity.objects.create(user=user_model, spotify_id=artist_id,
+                                                object_type=obj_type_enum, data=data, activity_type=action)
+                return JsonResponse({"time": time.time() - start})
 
-        identical_actions = UserActivity.objects.filter(user=user_model, spotify_id=song_id, data=data,
-                                                        activity_type=action)
+        identical_actions = UserActivity.objects.filter(user=user_model, spotify_id=spotify_id, data=data,
+                                                        object_type=obj_type_enum, activity_type=action)
         if len(identical_actions) == 0:
-            UserActivity.objects.create(user=user_model, spotify_id=song_id, data=data, activity_type=action)
+            UserActivity.objects.create(user=user_model, spotify_id=spotify_id, object_type=obj_type_enum,
+                                        data=data, activity_type=action)
         else:
             return HttpResponseBadRequest('There is already an existing entry with that same data')
 
-        return JsonResponse({"time": time.time()-start})
+        return JsonResponse({"time": time.time() - start})

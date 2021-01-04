@@ -14,9 +14,20 @@ class UserActivity(models.Model):
         LISTEN_LENGTH = 'LL'
         DISLIKE = 'DL'
 
+    class ObjectType(models.TextChoices):
+        TRACK = 'TR'
+        ARTIST = 'AR'
+        ALBUM = 'AL'
+        PLAYLIST = 'PL'
+
     activity_type = models.CharField(
         max_length=2,
         choices=ActivityType.choices,
+    )
+    object_type = models.CharField(
+        max_length=2,
+        choices=ObjectType.choices,
+        default=ObjectType.TRACK
     )
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     spotify_id = models.CharField(max_length=22)
