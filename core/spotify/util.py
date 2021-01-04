@@ -55,7 +55,8 @@ def extract_song_data(songs, use_canvases=True, ensure_preview_url=True):
             "album_art_url": song['album']['images'][0]['url'],
             "artist": artist_str,
             "preview_url": preview_url,
-            "uri": song['uri']
+            "uri": song['uri'],
+            "extern_url": song['external_urls']['spotify'],
         }
         if use_canvases:
             data["canvas_url"] = canvases[song['uri']] if song['uri'] in canvases.keys() else None

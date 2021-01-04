@@ -23,7 +23,7 @@ def get_recommendations(request):
     use_canvases = True
     num_songs = 100
     if "use_canvases" in request.GET.keys():
-        use_canvases = request.GET["use_canvases"]
+        use_canvases = request.GET["use_canvases"].lower() == 'true'
     if "num_songs" in request.GET.keys():
         num_songs = request.GET["num_songs"]
 
