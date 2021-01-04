@@ -42,8 +42,10 @@ def extract_song_data(songs, use_canvases=True, ensure_preview_url=True):
         canvases = get_canvases(uris)
     for song in songs:
         artist_str = ""
+        artist_ids = []
         for artist in song['artists']:
             artist_str += artist['name'] + ", "
+            artist_ids.append(artist['id'])
         artist_str = artist_str[:-2]
 
         preview_url = song['preview_url']
@@ -54,6 +56,7 @@ def extract_song_data(songs, use_canvases=True, ensure_preview_url=True):
             "album_title": song['album']['name'],
             "album_art_url": song['album']['images'][0]['url'],
             "artist": artist_str,
+            "artist_ids": artist_ids,
             "preview_url": preview_url,
             "uri": song['uri'],
             "extern_url": song['external_urls']['spotify'],

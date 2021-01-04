@@ -12,11 +12,12 @@ class UserActivity(models.Model):
         SHARE = 'SH'
         OPEN = 'OP'
         LISTEN_LENGTH = 'LL'
+        DISLIKE = 'DL'
 
     activity_type = models.CharField(
         max_length=2,
         choices=ActivityType.choices,
     )
     user = models.ForeignKey('User', on_delete=models.CASCADE)
-    spotify_song_id = models.CharField(max_length=200)
+    spotify_id = models.CharField(max_length=22)
     data = models.JSONField(default=dict)
