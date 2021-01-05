@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class User(models.Model):
@@ -20,6 +21,13 @@ class UserActivity(models.Model):
         ALBUM = 'AL'
         PLAYLIST = 'PL'
 
+    def save(self, *args, **kwargs):
+        """ Append created timestamp when a new entry is created """
+        if not self.id:
+            self.created = timezone.now()
+        return super(UserActivity, self).save(*args, **kwargs)
+
+    created = models.DateTimeField(default=timezone.now())
     activity_type = models.CharField(
         max_length=2,
         choices=ActivityType.choices,

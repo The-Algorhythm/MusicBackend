@@ -100,6 +100,8 @@ def interaction_post(request):
 
         action = None
         data = {}
+        response = HttpResponseBadRequest('There is already an existing entry with that same data')
+
         if interaction_type.upper() == "LIKE":
             action = UserActivity.ActivityType.LIKE
         elif interaction_type.upper() == "SHARE":
@@ -119,21 +121,32 @@ def interaction_post(request):
             liked_post = liked_post.get()
             UserActivity.objects.filter(id=liked_post.id).delete()
             return JsonResponse({"time": time.time() - start})
+
         elif interaction_type.upper() == "DISLIKE":
             action = UserActivity.ActivityType.DISLIKE
             if obj_type_enum == UserActivity.ObjectType.ARTIST:
                 artist_id_lst = spotify_id.split(',')
+
                 for artist_id in artist_id_lst:
-                    UserActivity.objects.create(user=user_model, spotify_id=artist_id,
-                                                object_type=obj_type_enum, data=data, activity_type=action)
-                return JsonResponse({"time": time.time() - start})
+                    response_code = check_duplicate(start, user_model, artist_id, data, obj_type_enum, action)
+                    if response_code == 200:
+                        # Only give 400 error if all the artists in the request are duplicates, i.e. return 200 for any
+                        # non-duplicate.
+                        response = JsonResponse({"time": time.time() - start})
+                return response
 
-        identical_actions = UserActivity.objects.filter(user=user_model, spotify_id=spotify_id, data=data,
-                                                        object_type=obj_type_enum, activity_type=action)
-        if len(identical_actions) == 0:
-            UserActivity.objects.create(user=user_model, spotify_id=spotify_id, object_type=obj_type_enum,
-                                        data=data, activity_type=action)
-        else:
-            return HttpResponseBadRequest('There is already an existing entry with that same data')
+        response_code = check_duplicate(start, user_model, spotify_id, data, obj_type_enum, action)
+        if response_code == 200:
+            response = JsonResponse({"time": time.time() - start})
+        return response
 
-        return JsonResponse({"time": time.time() - start})
+
+def check_duplicate(start_time, user_model, spotify_id, data, object_type, action):
+    identical_actions = UserActivity.objects.filter(user=user_model, spotify_id=spotify_id, data=data,
+                                                    object_type=object_type, activity_type=action)
+    if len(identical_actions) == 0:
+        UserActivity.objects.create(user=user_model, spotify_id=spotify_id, object_type=object_type,
+                                    data=data, activity_type=action)
+        return 200
+    else:
+        return 400
