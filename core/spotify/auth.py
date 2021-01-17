@@ -9,7 +9,7 @@ class SpotifyAuthenticator:
 
     def __init__(self):
         self.scopes = 'user-read-private user-read-email playlist-read-private playlist-read-collaborative ' \
-                      'user-top-read'
+                      'user-top-read user-library-read'
         self.sp_oauth = None
         self.sp = None
         self._init_oauth("0.0.0.0")  # init with stand in redirect_uri so update_token_info can be called

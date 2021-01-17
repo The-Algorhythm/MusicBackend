@@ -21,6 +21,7 @@ from core.routes.sheets import *
 from core.routes.recommendations import *
 from core.routes.profile import *
 from core.routes.interactions import interaction, get_liked_songs
+from core.routes.user_profile import create_profile
 from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
@@ -31,4 +32,5 @@ urlpatterns = [
     path('profile/', get_profile),
     path('interaction/', csrf_exempt(interaction)),
     path('liked/', get_liked_songs),
+    path('createprofile/', create_profile),
 ]

@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse, parse_qs
 from core.spotify.canvas.canvas import get_canvases
 
 
@@ -68,3 +68,26 @@ def extract_song_data(songs, use_canvases=True, ensure_preview_url=True):
             data["canvas_url"] = None
         song_data.append(data)
     return song_data
+
+
+def get_all_results(func, **kwargs):
+    """
+    Used to get all results from a Spotify call that limits the number of results you can get at once. This method will
+    repeatedly call the function that is passed in until the 'next' field is null, indicating that we have received all
+    results. The function passed must be able to take in limit and offset parameters and return items in the response in
+    the 'items' parameter.
+    :param func: The Spotify function that is being called
+    :param kwargs: Any named arguments that the Spotify function takes. These are passed on when the function is called
+    :return: A list containing all of the results
+    """
+    # TODO thread this to make it run much faster
+    final_results = []
+    temp_results = func(**kwargs)
+    final_results.extend(temp_results['items'])
+    while temp_results['next'] is not None:
+        params = parse_qs(urlparse(temp_results['next']).query)
+        limit = int(params['limit'][0])
+        offset = int(params['offset'][0])
+        temp_results = func(limit=limit, offset=offset, **kwargs)
+        final_results.extend(temp_results['items'])
+    return final_results
