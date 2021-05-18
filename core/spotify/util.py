@@ -12,11 +12,17 @@ def get_preview_url(uri):
     :param uri: the URI string for a track
     :return: the URL of the 30 second preview for the song if it exists
     """
-    url = 'https://open.spotify.com/embed/track/' + uri
-    r = requests.get(url)
-    soup = BeautifulSoup(r.content, features="html.parser")
-    song_json = json.loads(unquote(soup.find("script", {"id": "resource"}).contents[0]))
-    return song_json['preview_url']
+    try:
+        url = 'https://open.spotify.com/embed/track/' + uri
+        r = requests.get(url)
+        soup = BeautifulSoup(r.content, features="html.parser")
+        song_json = json.loads(unquote(soup.find("script", {"id": "resource"}).contents[0]))
+        return song_json['preview_url']
+    except:
+        print(f"Could not get preview url for: {uri}")
+        return None
+
+# print(get_preview_url("3jbENQx0tkhOVWjRTu7IzL"))
 
 
 def uri_string(uri):
@@ -25,7 +31,10 @@ def uri_string(uri):
     :param uri:
     :return:
     """
-    return uri[len('spotify:track:'):]
+    if 'spotify:track:' in uri:
+        return uri[len('spotify:track:'):]
+    else:
+        return None
 
 
 def extract_song_data(songs, use_canvases=True, ensure_preview_url=True):

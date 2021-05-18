@@ -26,7 +26,7 @@ class SpotifyAuthenticator:
         return HttpResponseRedirect(self._init_oauth(redirect_uri))
 
     def get_initial_token_info(self, initial_token):
-        return self.sp_oauth.get_access_token(initial_token)
+        return self.sp_oauth.get_access_token(initial_token, check_cache=False)
 
     def update_token_info(self, token_info):
         if self.sp_oauth.is_token_expired(token_info):
