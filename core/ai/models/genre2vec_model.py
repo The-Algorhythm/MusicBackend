@@ -31,6 +31,10 @@ class Genre2Vec(nn.Module):
         x = torch.tensor(idx).to(device)
         return self.embedding(x)
 
+    def encode_to_context(self, idx):
+        x = torch.tensor(idx).to(device)
+        return self.context(x)
+
     def find_n_closest_idxs(self, input_embedding, n):
         n_closest = [-1]*n
         closest_sims = [0]*n

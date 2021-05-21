@@ -1,9 +1,8 @@
-import pickle
 import time
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
+from torch import load
 
 from core.ai.models.genre2vec_model import Genre2Vec, train_epocs
 
@@ -40,9 +39,13 @@ def main():
     train_loader = DataLoader(dataset=train_dataset, batch_size=512, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=512)
 
-    model = Genre2Vec(num_genres)
+    # Uncomment if loading from saved checkpoint
+    filename = 'checkpoint.pth.tar'
+    checkpoint = load(filename)
 
-    final_loss = train_epocs(model, train_loader, test_loader, epochs=100, lr=0.001, wd=1e-6)
+    model = Genre2Vec(num_genres, enc_size=256)
+
+    final_loss = train_epocs(model, train_loader, test_loader, epochs=100, lr=0.001, wd=1e-6, checkpoint=checkpoint)
     print(f"FINAL LOSS: {final_loss}")
 
 
