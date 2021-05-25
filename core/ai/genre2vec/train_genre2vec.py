@@ -24,7 +24,7 @@ class Genre2VecDataset(Dataset):
 
 def main():
     start = time.time()
-    data = pd.read_csv('../data/genre2vec/genre2vec_training_data.csv')
+    data = pd.read_csv('../data/genre2vec/genre2vec_training_data_weighted.csv')
 
     inputs_full = data[['center_genre', 'context_genre']].to_numpy()
     outputs_full = data[['similarity']].to_numpy()
@@ -40,12 +40,15 @@ def main():
     test_loader = DataLoader(dataset=test_dataset, batch_size=512)
 
     # Uncomment if loading from saved checkpoint
-    filename = 'checkpoint.pth.tar'
-    checkpoint = load(filename)
+    # filename = 'checkpoint.pth.tar'
+    # checkpoint = load(filename)
 
-    model = Genre2Vec(num_genres, enc_size=256)
+    model = Genre2Vec(num_genres, enc_size=128)
 
-    final_loss = train_epocs(model, train_loader, test_loader, epochs=100, lr=0.001, wd=1e-6, checkpoint=checkpoint)
+    # final_loss = train_epocs(model, train_loader, test_loader, epochs=100, lr=0.001, wd=1e-6, checkpoint=checkpoint)
+    final_loss = train_epocs(model, train_loader, test_loader, epochs=100, lr=0.001, wd=1e-6)
+    print(f"Loss after 100 epochs: {final_loss}")
+    final_loss = train_epocs(model, train_loader, test_loader, epochs=100, lr=0.001, wd=1e-6)
     print(f"FINAL LOSS: {final_loss}")
 
 
