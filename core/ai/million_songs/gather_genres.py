@@ -7,6 +7,8 @@ import json
 import ast
 from collections import Counter
 
+from core.ai.util import chunk_it
+
 update_lock = threading.Lock()
 client_credentials = SpotifyClientCredentials(client_id = 'a20a59fe314d4f23bb7bd658c5a1ca36', client_secret = '868f0f4956e747bdbdd16ae7bc871b4f')
 spotify = spotipy.Spotify(client_credentials_manager = client_credentials)
@@ -97,18 +99,6 @@ def update_df(idx, new_genres):
         update_lock.release()
 
 
-def chunk_it(seq, num):
-    avg = len(seq) / float(num)
-    out = []
-    last = 0.0
-
-    while last < len(seq):
-        out.append(seq[int(last):int(last + avg)])
-        last += avg
-
-    return out
-
-
 def chunk_it_max(seq, max_len):
     out = []
     last = 0.0
@@ -133,7 +123,7 @@ def main():
     # songs = songs['spotify_id']
     #
     # genres = [[]] * len(songs)
-    songs = pd.read_csv('spotify_genres.csv')
+    songs = pd.read_csv('../data/msd/spotify_genres.csv')
 
     genres = [ast.literal_eval(x) for x in songs.genres]
     not_found = songs[[x == '[]' for x in songs['genres']]]  # only look at those ids where no genre was found

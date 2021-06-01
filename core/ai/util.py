@@ -10,7 +10,10 @@ def rescale_distribution(counts_map):
     max_log = log(max(counts))
     min_log = log(min(counts))
     for key, value in counts_map.items():
-        scaled_value = (log(value) - min_log) / (max_log - min_log)
+        if max_log == min_log:
+            scaled_value = 1 / len(counts)
+        else:
+            scaled_value = (log(value) - min_log) / (max_log - min_log)
         counts_map[key] = scaled_value
     return counts_map
 
@@ -36,3 +39,15 @@ def get_enc_tuple(vec, enc_map):
         if vec[i] != -1:
             unencoded_map[enc_map[i]] = vec[i]
     return tuple(sorted(unencoded_map.items()))
+
+
+def chunk_it(seq, num):
+    avg = len(seq) / float(num)
+    out = []
+    last = 0.0
+
+    while last < len(seq):
+        out.append(seq[int(last):int(last + avg)])
+        last += avg
+
+    return out

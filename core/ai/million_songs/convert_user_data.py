@@ -26,5 +26,5 @@ head = joined.head()
 user_data = joined[['user_id', 'spotify_id', 'listen_count']]
 
 user_data.to_csv('user_dataset_lite.csv', index=False)
-with open('user_id_map.json', 'w') as f:
+with open('../data/msd/user_id_map.json', 'w') as f:
     f.write(json.dumps(num_to_user_id))
