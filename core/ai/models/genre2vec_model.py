@@ -5,6 +5,9 @@ from tqdm import tqdm
 import shutil
 import numpy as np
 from scipy import spatial
+import json
+from torch import load
+from ray import tune
 
 if torch.cuda.is_available():
     dev = "cuda:0"
@@ -17,15 +20,17 @@ class Genre2Vec(nn.Module):
     def __init__(self, input_size, enc_size=256):
         super(Genre2Vec, self).__init__()
         self.input_size = input_size
+        self.enc_size = enc_size
         self.embedding = nn.Embedding(input_size, enc_size)
         self.context = nn.Embedding(input_size, enc_size)
+        self.cos_sim = nn.CosineSimilarity(dim=1)
         self.to(device)
 
     def forward(self, input_genres, context_genres):
         a = self.embedding(input_genres)
+        # b = self.embedding(context_genres)
         b = self.context(context_genres)
-        dot = (torch.sum(a*b, dim=1))
-        return torch.sigmoid(dot)
+        return self.cos_sim(a, b)
 
     def encode(self, idx):
         x = torch.tensor(idx).to(device)
@@ -48,14 +53,30 @@ class Genre2Vec(nn.Module):
         closest_sims = sorted(closest_sims, reverse=True)
         return n_closest
 
+    def save(self, filename='checkpoint.pth.tar'):
+        state = {'state_dict': self.state_dict()}
+        torch.save(state, filename)
 
-def test():
-    model = Genre2Vec(3, enc_size=5)
 
-    input_genres = torch.LongTensor([0, 0])
-    context_genres = torch.LongTensor([0, 1])
-    model(input_genres, context_genres)
-    x = 1
+def create_idx2enc():
+    with open('../data/genre2vec/genre2idx.json', 'r') as f:
+        genre2idx = json.loads(f.read())
+    with open('../data/genre2vec/idx2genre.json', 'r') as f:
+        idx2genre = json.loads(f.read())
+        idx2genre = {int(k): idx2genre[k] for k in idx2genre.keys()}
+    enc_size = 128
+
+    genre2vec_model = Genre2Vec(input_size=len(genre2idx.keys()), enc_size=enc_size)
+    genre2vec_model.load_state_dict(load('../models/genre2vec/best_model_enc128_ep75_0.007_6-22-21.pth.tar')['state_dict'])
+
+    idx2enc = genre2vec_model.embedding.weight.cpu().detach().numpy()
+    length = np.sqrt((idx2enc ** 2).sum(axis=1)).reshape(-1, 1)
+    idx2enc = idx2enc / length  # normalize to unit length so that we are preforming cosine distance
+    np.savetxt("../data/genre2vec/idx2enc.csv", idx2enc, delimiter=",")
+    print("Saved idx2enc")
+
+
+create_idx2enc()
 
 
 def cosine_similarity(vec1, vec2):
@@ -67,18 +88,19 @@ def to_numpy(tensor):
     return tensor.cpu().detach().numpy()
 
 
+def custom_loss(y_hat, batch_outputs):
+    loss = nn.MSELoss()
+    return loss(y_hat, batch_outputs) * 100
+
+
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
     if is_best:
         shutil.copyfile(filename, 'model_best.pth.tar')
 
 
-def custom_loss(y_hat, batch_outputs):
-    loss = nn.MSELoss()
-    return loss(y_hat, batch_outputs)
-
-
-def train_epocs(model, train_loader, test_loader, epochs=10, lr=0.01, wd=0.0, checkpoint=None):
+def train_epocs(model, train_loader, test_loader, epochs=10, lr=0.01, wd=0.0, checkpoint=None, do_tune=False,
+                do_checkpoint=True, epoch_start=0):
     """
     Run the training loop for the specified number of epochs. If checkpoint is passed in, it will load the model and
     optimizer weights from the saved values.
@@ -89,11 +111,15 @@ def train_epocs(model, train_loader, test_loader, epochs=10, lr=0.01, wd=0.0, ch
         optimizer.load_state_dict(checkpoint['optimizer'])
     model.train()
     best_val_loss = 1000
-    for epoch in range(epochs):
-        loop = tqdm(enumerate(train_loader), total=len(train_loader))
+    for epoch in range(epoch_start, epochs+epoch_start):
+        if do_tune:
+            loop = tqdm(enumerate(train_loader), total=len(train_loader), disable=True)
+        else:
+            loop = tqdm(enumerate(train_loader), total=len(train_loader))
         for batch_idx, (inputs, y_true) in loop:
             batch_input_genres, batch_context_genres = [x.reshape(x.shape[0]) for x in np.hsplit(inputs.to(device), 2)]
             batch_outputs = y_true.to(device).reshape(y_true.shape[0]).float()
+            # batch_outputs = batch_outputs.log()
             y_hat = model(batch_input_genres, batch_context_genres)
             loss = custom_loss(y_hat, batch_outputs)
             optimizer.zero_grad()
@@ -101,30 +127,38 @@ def train_epocs(model, train_loader, test_loader, epochs=10, lr=0.01, wd=0.0, ch
             optimizer.step()
 
             # update progress bar
-            loop.set_description(f"Epoch [{epoch+1}/{epochs}]")
+            loop.set_description(f"Epoch [{epoch+1}/{epochs+epoch_start}]")
             loop.set_postfix(loss=loss.item())
-        val_loss = test_loss(model, test_loader)
-        best_val_loss = min(best_val_loss, val_loss)
-        print("test loss %.5f " % val_loss)
-        save_checkpoint({
-            'epoch': epoch + 1,
-            'state_dict': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-        }, is_best=(val_loss == best_val_loss))
-    return test_loss(model, test_loader)
+
+        # We don't do this with the current training loop, but it can be useful for debugging
+        # val_loss = test_loss(model, test_loader)
+        # best_val_loss = min(best_val_loss, val_loss)
+        # print("test loss %.5f " % val_loss)
+        # if do_checkpoint:
+        #     save_checkpoint({
+        #         'epoch': epoch + 1,
+        #         'state_dict': model.state_dict(),
+        #         'optimizer': optimizer.state_dict(),
+        #     }, is_best=False)
+
+    val_loss = test_loss(model, test_loader)
+    if do_tune:
+        tune.report(mean_loss=val_loss)
+    return val_loss
 
 
 def test_loss(model, test_loader):
     model.eval()
-    avg_loss = torch.tensor(float(0)).to(device)
+    avg_loss = 0
     num = 0
     for (inputs, y_true) in test_loader:
         inp, ctx = [x.reshape(x.shape[0]) for x in np.hsplit(inputs.to(device), 2)]
         y_true = y_true.to(device).reshape(y_true.shape[0]).float()
+        # y_true = y_true.log()
         y_hat = model(inp, ctx)
         loss = custom_loss(y_hat, y_true)
-        avg_loss += loss
+        avg_loss += loss.item()
         num += 1
     avg_loss /= num
     model.train()
-    return avg_loss.item()
+    return avg_loss

@@ -18,20 +18,6 @@ def rescale_distribution(counts_map):
     return counts_map
 
 
-def invert_genre_data():
-    with open('../data/genre_data.pickle', 'rb') as f:
-        genre_data = pickle.load(f)
-    print('finished loading')
-    inverted_map = dict()
-    for sp_tuple, distrib_lst in genre_data.items():
-        for distrib in distrib_lst:
-            new_key = tuple(sorted(distrib.items()))
-            inverted_map[new_key] = sp_tuple
-    with open('data/inverted_genre_data.pickle', 'wb') as f:
-        pickle.dump(inverted_map, f)
-    print('done')
-
-
 def get_enc_tuple(vec, enc_map):
     enc_map = list(enc_map.keys())
     unencoded_map = dict()

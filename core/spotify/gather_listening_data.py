@@ -31,6 +31,7 @@ def get_listening_data(user_spotify):
     user_songs.extend(get_all_results(sp.current_user_top_tracks, time_range="medium_term"))
     user_songs.extend(get_all_results(sp.current_user_top_tracks, time_range="long_term"))
 
+    user_songs = [x for x in user_songs if x is not None and x['id'] is not None]
     counter = Counter([x['id'] for x in user_songs])
     genres = gather_genres(dict(counter), user_songs, user_spotify)
 
@@ -61,6 +62,7 @@ def gather_genres(counter, user_songs, user_spotify):
     for i in range(len(artist_ids)):   # TODO thread this to make it run much faster
         lst = artist_ids[i]
         artists_data.extend(user_spotify.get_artists(artists=lst)['artists'])
+    artists_data = [x for x in artists_data if x is not None]
     for artist in artists_data:
         count = counter[track_artists_map[artist['id']]]
         genres.extend(artist['genres']*count)
