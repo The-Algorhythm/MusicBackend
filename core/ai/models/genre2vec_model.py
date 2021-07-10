@@ -76,7 +76,7 @@ def create_idx2enc():
     print("Saved idx2enc")
 
 
-create_idx2enc()
+# create_idx2enc()
 
 
 def cosine_similarity(vec1, vec2):

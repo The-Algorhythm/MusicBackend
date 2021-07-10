@@ -1,5 +1,6 @@
 from math import log
 import pickle
+from scipy import spatial
 
 
 def rescale_distribution(counts_map):
@@ -25,6 +26,10 @@ def get_enc_tuple(vec, enc_map):
         if vec[i] != -1:
             unencoded_map[enc_map[i]] = vec[i]
     return tuple(sorted(unencoded_map.items()))
+
+
+def cosine_similarity_numpy(vec1, vec2):
+    return 1 - spatial.distance.cosine(vec1, vec2)
 
 
 def chunk_it(seq, num):

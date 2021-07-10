@@ -60,6 +60,7 @@ def insert_user(user_id, arr):
 def query_user(user_id):
     conn = connect()
     cur = conn.cursor()
+    cur.itersize = 10000  # how many records to buffer on a client
     cur.execute(
         """
         SELECT user_data

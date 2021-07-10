@@ -63,6 +63,6 @@ full_df.insert(4, "cluster", full_cluster_labels)
 my_df.insert(4, "cluster", my_cluster_labels)
 steven_df.insert(4, "cluster", steven_cluster_labels)
 
-# fig = px.scatter_3d(full_df, x='x', y='y', z='z', hover_name='genre', color='cluster')
-fig = px.scatter_3d(my_df, x='x', y='y', z='z', size='ranking', hover_name='genre', color='cluster', symbol='cluster')
+fig = px.scatter_3d(full_df, x='x', y='y', z='z', hover_name='genre', color='cluster')
+# fig = px.scatter_3d(my_df, x='x', y='y', z='z', size='ranking', hover_name='genre', color='cluster', symbol='cluster')
 fig.show()
